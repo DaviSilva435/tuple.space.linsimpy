@@ -27,7 +27,7 @@ class Project():
         self.nova_mensagem = 0
         self.mensagem = ''
         self.destino_mensagem = '' 
-        self.nome_usuario = ''
+        self.nome_usuario_mensagem = ''
 
     # CRIAR AMBIENTE / USUARIO / DISPOSITIVO
     def criar_ambiente(self):
@@ -51,7 +51,6 @@ class Project():
         temp.append(nome_usuario)
         self.env.out(("usuarios", nome_ambiente, tuple(temp)))
         print("Usuario criado no ambiente: " + nome_ambiente)
-        #self.tela_usuario(nome_usuario)
 
     def criar_dispositivo(self, ambiente):
         nome_ambiente = ambiente
@@ -94,7 +93,6 @@ class Project():
         temp = list(integrantes[2])
         temp.remove(nomeUser)
         self.env.out(("usuarios", nomeAmbienteAnterior, tuple(temp)))
-        print("Saiu sala " + nomeAmbienteAnterior)
 
         # Adiciona a nova tupla 
         usuarios = self.env.inp(("usuarios", nomeAmbientePosterior, object))
@@ -114,7 +112,6 @@ class Project():
         temp = list(integrantes[2])
         temp.remove(nomeUser)
         self.env.out(("dispositivos", nomeAmbienteAnterior, tuple(temp)))
-        print("Saiu sala " + nomeAmbienteAnterior)
 
         # Adiciona a nova tupla 
         dispositivos = self.env.inp(("dispositivos", nomeAmbientePosterior, object))
@@ -242,6 +239,7 @@ class Project():
         print("DISPOSITIVO: " + listbox.get(ACTIVE))
 
     def tela_chat_usuario(self, nome_usuario, nome_ambiente):
+        nome_individuo = nome_usuario.get(ACTIVE)
         newWindow = Toplevel(root)
         newWindow.title("BEM VINDO!")
         newWindow.geometry("310x390")
@@ -263,10 +261,10 @@ class Project():
         label_mensagem.pack(padx=10, pady=10)
         label_mensagem.place(x=15, y=300)
 
-        button_envia_mensagem = Button(frame_chat, text='ENVIAR', command=lambda: self.envia_mensagem(str(label_mensagem.get()), nome_usuario, nome_ambiente))
+        button_envia_mensagem = Button(frame_chat, text='ENVIAR', command=lambda: self.envia_mensagem(str(label_mensagem.get()), nome_individuo, nome_ambiente))
         button_envia_mensagem.place(x=120, y=330)
 
-        self.threadRecebe_Mensagens_func(text_area_chat, nome_usuario, nome_ambiente)
+        self.threadRecebe_Mensagens_func(text_area_chat, nome_usuario.get(ACTIVE), nome_ambiente)
 
     def threadRecebe_Mensagens_func(self, text_area_chat, nome_usuario, nome_ambiente):
         threading.Thread(target=self.recebe_mensagens, args=(text_area_chat, nome_usuario, nome_ambiente,)).start()
@@ -277,15 +275,13 @@ class Project():
             self.nova_mensagem = 1;
             self.mensagem = entry_widget
             self.destino_mensagem = nome_ambiente
-            self.nome_usuario = nome_usuario.get(ACTIVE)
+            self.nome_usuario_mensagem = nome_usuario
 
     def recebe_mensagens(self, ScrolledText, listbox, salaAtual):        
         while(True):
             if self.nova_mensagem == 1 and self.destino_mensagem == salaAtual:
-                print(self.nome_usuario)
-                print(self.nova_mensagem)
-                ScrolledText.insert(tk.INSERT, self.nome_usuario + ": " + self.mensagem + '\n')
-                print(listbox.get(ACTIVE) + " recebeu a msg!")
+                ScrolledText.insert(tk.INSERT, self.nome_usuario_mensagem + ": " + self.mensagem + '\n')
+                print(listbox + " recebeu a msg!")
                 self.nova_mensagem = 0
             else:
                 pass
