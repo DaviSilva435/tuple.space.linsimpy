@@ -27,6 +27,7 @@ class Project():
         self.nova_mensagem = 0
         self.mensagem = ''
         self.destino_mensagem = '' 
+        self.nome_usuario = ''
 
     # CRIAR AMBIENTE / USUARIO / DISPOSITIVO
     def criar_ambiente(self):
@@ -54,11 +55,11 @@ class Project():
 
     def criar_dispositivo(self, ambiente):
         nome_ambiente = ambiente
-        nome_usuario = f'user{self.contador_usuario}'
-        self.contador_usuario += 1
+        nome_dispositivo = f'disp{self.contador_dispositivo}'
+        self.contador_dispositivo += 1
         dispositivos = self.env.inp(("dispositivos", nome_ambiente, object))
         temp = list(dispositivos[2])
-        temp.append(nome_usuario)
+        temp.append(nome_dispositivo)
         self.env.out(("dispositivos", nome_ambiente, tuple(temp)))
         print("Dispositivos criado no ambiente: " + nome_ambiente)
 
@@ -71,14 +72,15 @@ class Project():
         listbox.delete(0, END)
         for usuario in list(usuarios[2]):
             listbox.insert(END, usuario)
-        
-
-        
-        
-    def listar_dispositivos(self, nomeSala):
+    
+    def listar_dispositivos(self, nomeSala,listbox):
         dispositivos = self.env.rdp(("dispositivos", nomeSala, object))
         print(dispositivos)
         print(list(dispositivos[2]))
+
+        listbox.delete(0, END)
+        for dispositivo in list(dispositivos[2]):
+            listbox.insert(END, dispositivo)
 
 
     # MOVER USUARIO / DISPOSITIVO
@@ -101,6 +103,26 @@ class Project():
         self.env.out(("usuarios", nomeAmbientePosterior, tuple(temp)))
         print("Usuario movido para o ambiente: " + nomeAmbientePosterior)
 
+    
+    def move_dispositivo_ambiente(self, ambiente_posterior, dispositivo, ambiente_anterior):
+        nomeUser = dispositivo
+        nomeAmbienteAnterior = ambiente_anterior
+        nomeAmbientePosterior = ambiente_posterior
+
+        # Remove a tupla antiga
+        integrantes = self.env.inp(("dispositivos", nomeAmbienteAnterior, object))
+        temp = list(integrantes[2])
+        temp.remove(nomeUser)
+        self.env.out(("dispositivos", nomeAmbienteAnterior, tuple(temp)))
+        print("Saiu sala " + nomeAmbienteAnterior)
+
+        # Adiciona a nova tupla 
+        dispositivos = self.env.inp(("dispositivos", nomeAmbientePosterior, object))
+        temp = list(dispositivos[2])
+        temp.append(nomeUser)
+        self.env.out(("dispositivos", nomeAmbientePosterior, tuple(temp)))
+        print("Dispositivo movido para o ambiente: " + nomeAmbientePosterior)
+
 
     def conexao_cliente(self):
         self.env.out(("ambientes", tuple([])))
@@ -113,17 +135,17 @@ class Project():
 
         # BG cor de fundo  FG cor da letra
         label_nome_cliente = Label(newWindow, text="BEM VINDO!", font=('Ivy 15 bold'), fg="#FFFFFF", bg="#4F4F4F")
-        label_nome_cliente.place(x=40, y=20)
+        label_nome_cliente.place(x=80, y=20)
 
         jogar_button = Button(newWindow, text='Criar Ambiente', font='sans 11 bold', width=12, height=int(1.5),
                               command=lambda: self.criar_ambiente())
-        jogar_button.place(x=60, y=95)
+        jogar_button.place(x=80, y=75)
 
 
     def tela_ambiente(self, nome_ambiente):
         newWindow = Toplevel(root)
         newWindow.title("AMBIENTE!")
-        newWindow.geometry("400x300")
+        newWindow.geometry("525x340")
         newWindow.config(bg="#4F4F4F")
 
         newWindow.protocol("WM_DELETE_WINDOW", lambda: self.fecha_tela(newWindow))
@@ -131,55 +153,98 @@ class Project():
         # Create a listbox
         #listbox = Listbox(newWindow, x=70, y=20, width=10, height=10, selectmode=MULTIPLE)        
         listbox = Listbox(newWindow)
-        listbox.place(x=180, y=20)  
+        listbox.place(x=180, y=80)
+
+        listbox_disp = Listbox(newWindow)
+        listbox_disp.place(x=350, y=80)  
 
         # BG cor de fundo  FG cor da letra
         label_nome_cliente = Label(newWindow, text="AMBIENTE", font=('Ivy 15 bold'), fg="#FFFFFF", bg="#4F4F4F")
         label_nome_cliente.place(x=20, y=5)
+
+        label_nome_users = Label(newWindow, text="USUÁRIOS", font=('Ivy 15 bold'), fg="#FFFFFF", bg="#4F4F4F")
+        label_nome_users.place(x=180, y=5)
+
+        label_nome_disp = Label(newWindow, text="DISPOSITIVOS", font=('Ivy 15 bold'), fg="#FFFFFF", bg="#4F4F4F")
+        label_nome_disp.place(x=350, y=5)
 
         label_nome_ambiente = Label(newWindow, text=nome_ambiente, font=('Ivy 15 bold'), fg="#FFFFFF", bg="#4F4F4F")
         label_nome_ambiente.place(x=20, y=40)
 
         jogar_button = Button(newWindow, text='Criar Usuário', font='sans 11 bold', width=12, height=int(1.5),
                               command=lambda: self.criar_usuario(nome_ambiente))
-        jogar_button.place(x=20, y=95)
+        jogar_button.place(x=20, y=80)
 
-        jogar_button = Button(newWindow, text='Atualizar Usuarios', font='sans 11 bold', width=12, height=int(1.5),
+        jogar_button = Button(newWindow, text='Atual Usuarios', font='sans 11 bold', width=12, height=int(1.5),
                         command=lambda: self.listar_usuarios(nome_ambiente, listbox))
-        jogar_button.place(x=20, y=130)
+        jogar_button.place(x=20, y=115)
 
         jogar_button = Button(newWindow, text='Mover Usuario', font='sans 11 bold', width=12, height=int(1.5),
                         command=lambda: self.tela_mover_usuario(listbox, nome_ambiente))
-        jogar_button.place(x=20, y=165)
+        jogar_button.place(x=20, y=150)
 
         jogar_button = Button(newWindow, text='Chat Usuario', font='sans 11 bold', width=12, height=int(1.5),
                 command=lambda: self.tela_chat_usuario(listbox, nome_ambiente))
-        jogar_button.place(x=20, y=200)
+        jogar_button.place(x=20, y=185)
+
+
+        jogar_button = Button(newWindow, text='Criar Dispositivo', font='sans 11 bold', width=12, height=int(1.5),
+                              command=lambda: self.criar_dispositivo(nome_ambiente))
+        jogar_button.place(x=20, y=220)
+
+        jogar_button = Button(newWindow, text='Atual Dispositivo', font='sans 11 bold', width=12, height=int(1.5),
+                        command=lambda: self.listar_dispositivos(nome_ambiente, listbox_disp))
+        jogar_button.place(x=20, y=255)
+
+        jogar_button = Button(newWindow, text='Mover Dispositivo', font='sans 11 bold', width=12, height=int(1.5),
+                        command=lambda: self.tela_mover_dispositivo(listbox_disp, nome_ambiente))
+        jogar_button.place(x=20, y=290)
+
 
     def tela_mover_usuario(self, listbox, nome_ambiente):
         newWindow = Toplevel(root)
         newWindow.title("MOVER USUARIO!")
-        newWindow.geometry("400x300")
+        newWindow.geometry("300x200")
         newWindow.config(bg="#4F4F4F")
 
         newWindow.protocol("WM_DELETE_WINDOW", lambda: self.fecha_tela(newWindow))
 
-        label_nome_cliente = Label(newWindow, text="Mover " + listbox.get(ACTIVE) + " para o ambiente:", font=('Ivy 15 bold'), fg="#FFFFFF", bg="#4F4F4F")
-        label_nome_cliente.place(x=40, y=20)
+        label_nome_cliente = Label(newWindow, text="Mover " + listbox.get(ACTIVE) + " para:", font=('Ivy 15 bold'), fg="#FFFFFF", bg="#4F4F4F")
+        label_nome_cliente.place(x=45, y=20)
 
         ambiente_name_input = Entry(newWindow, width=27)
-        ambiente_name_input.place(x=60, y=60)
+        ambiente_name_input.place(x=40, y=60)
 
         jogar_button = Button(newWindow, text='Mover', font='sans 11 bold', width=12, height=int(1.5),
                               command=lambda: self.move_usuario_ambiente(str(ambiente_name_input.get()), listbox.get(ACTIVE), nome_ambiente))
         jogar_button.place(x=80, y=95)
 
-        print("Esporte: " + listbox.get(ACTIVE))
+        print("Usuario: " + listbox.get(ACTIVE))
+
+    def tela_mover_dispositivo(self, listbox, nome_ambiente):
+        newWindow = Toplevel(root)
+        newWindow.title("MOVER DISPOSITIVO!")
+        newWindow.geometry("300x200")
+        newWindow.config(bg="#4F4F4F")
+
+        newWindow.protocol("WM_DELETE_WINDOW", lambda: self.fecha_tela(newWindow))
+
+        label_nome_cliente = Label(newWindow, text="Mover " + listbox.get(ACTIVE) + " para:", font=('Ivy 15 bold'), fg="#FFFFFF", bg="#4F4F4F")
+        label_nome_cliente.place(x=45, y=20)
+
+        ambiente_name_input = Entry(newWindow, width=27)
+        ambiente_name_input.place(x=40, y=60)
+
+        jogar_button = Button(newWindow, text='Mover', font='sans 11 bold', width=12, height=int(1.5),
+                              command=lambda: self.move_dispositivo_ambiente(str(ambiente_name_input.get()), listbox.get(ACTIVE), nome_ambiente))
+        jogar_button.place(x=80, y=95)
+
+        print("DISPOSITIVO: " + listbox.get(ACTIVE))
 
     def tela_chat_usuario(self, nome_usuario, nome_ambiente):
         newWindow = Toplevel(root)
         newWindow.title("BEM VINDO!")
-        newWindow.geometry("660x390")
+        newWindow.geometry("310x390")
         frame_chat = Frame(newWindow, width=310, height=390, bg="#4F4F4F", pady=0, padx=0)
         frame_chat.grid(row=1, column=0)
 
@@ -212,28 +277,14 @@ class Project():
             self.nova_mensagem = 1;
             self.mensagem = entry_widget
             self.destino_mensagem = nome_ambiente
-            """ mandaMensagem(tse, nome_sala_chat, nome_usuario, destinatario, msg)
-            flag_Monitora_Novas_Mensagens = 1 """
-
-    """    def mandaMensagem(ts, nomeSala, remetente, destinatario, mensagem):
-
-        mensagens = ts.inp(("SALA", nomeSala, object))
-        temp = list(mensagens[2])
-        temp.clear()
-        
-        if destinatario != "Todos":
-            temp.append((destinatario,"<" + remetente + " - *Msg Privada para vc>: " + mensagem),)
-        else:
-            temp.append((destinatario,"<" + remetente + ">: " + mensagem),)
-            
-        ts.out(("SALA", nomeSala, tuple(temp)))
-        print("Destinatario " + str(destinatario))
-        print("Mandou MSG " + str(temp)) """
+            self.nome_usuario = nome_usuario.get(ACTIVE)
 
     def recebe_mensagens(self, ScrolledText, listbox, salaAtual):        
         while(True):
             if self.nova_mensagem == 1 and self.destino_mensagem == salaAtual:
-                ScrolledText.insert(tk.INSERT, self.mensagem)
+                print(self.nome_usuario)
+                print(self.nova_mensagem)
+                ScrolledText.insert(tk.INSERT, self.nome_usuario + ": " + self.mensagem + '\n')
                 print(listbox.get(ACTIVE) + " recebeu a msg!")
                 self.nova_mensagem = 0
             else:
